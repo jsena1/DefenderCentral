@@ -1,4 +1,4 @@
-const apiKey = '3cafe6ff9ae09edcb22bd5529609efc1eca8209943277c80ab99cd70a4cf684f';
+const apiKey = <your API key>
 
 function scanURL() {
   const urlInput = document.getElementById('urlInput').value;
