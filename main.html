@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Defender Central</title>
+</head>
+
+<body>
+    <!-- Testing VirusTotalAPI -->
+    <h1>Testing VirusTotal API</h1>
+    <form id="scanForm">
+        <label for="urlInput">Enter URL to scan:</label>
+        <input type="text" id="urlInput" required>
+        <button type="button" onclick="scanURL()">Scan</button>
+    </form>
+
+    <div id="resultContainer" style="display: none;">
+        <h2>Scan Results</h2>
+        <pre id="scanResults"></pre>
+    </div>
+
+    <!-- ChatGPT Section -->
+    <h1>Chat with GPT</h1>
+    <label for="chatInput">Input:</label>
+    <input type="text" id="chatInput">
+    <button type="button" onclick="chatWithGPT()">Send</button>
+    <div id="chatResults"></div>
+
+    <!-- Reference the external JavaScript file -->
+    <script src="api.js"></script>
+</body>
+
+</html>
