@@ -1,0 +1,39 @@
+#navigation{
+    float:right;
+    text-align: center;
+    clear: both;
+}
+#search{
+    clear:both;
+
+}
+body {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+main{
+    flex: 1;
+    padding-bottom: 200px;
+}
+#resultContainer{
+    outline: 2px solid #000000;
+}
+.nextPage{
+    width: 140px; 
+    height: 40px; 
+    background-color: #000; 
+    color: #fff; 
+    text-align: center; 
+    line-height: 40px; 
+    margin: 10px;
+}
+#references{
+    width: 140px;
+    height: 40px; /* Set the height of each rectangle */
+    background-color: #000; /* Set the background color of each rectangle (black in this case) */
+    color: #fff; /* Set the text color */
+    text-align: center; /* Center-align text */
+    line-height: 40px; /* Vertical centering of text */
+    margin: 10px;
+}

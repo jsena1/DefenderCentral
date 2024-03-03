@@ -5,22 +5,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Defender Central</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+    <main>
     <!-- Testing VirusTotalAPI -->
-    <h1>Testing VirusTotal API</h1>
-    <form id="scanForm">
-        <label for="urlInput">Enter URL to scan:</label>
-        <input type="text" id="urlInput" required>
-        <button type="button" onclick="scanURL()">Scan</button>
-    </form>
-
-    <div id="resultContainer" style="display: none;">
-        <h2>Scan Results</h2>
-        <pre id="scanResults"></pre>
+    <div id="Navigation">
+        <div class="nextPage">Coming Soon</div>
+            
+       
+        <div class="nextPage">Coming Soon</div>
     </div>
+    <div id="search">
+        <h1>Defender Central</h1>
+        <form id="scanForm">
+            <label for="urlInput">Enter URL to scan:</label>
+            <input type="text" id="urlInput" required>
+            <button type="button" onclick="scanURL()">Scan</button>
+        </form>
 
+        <div id="resultContainer" style="display: none;">
+            <h2>Scan Results</h2>
+            <pre id="scanResults"></pre>
+        </div>
+    </main>
+    <div id="references">
+        references
+    </div>
+    </div>
     <!-- Reference the external JavaScript file -->
     <script src="api.js"></script>
 </body>
