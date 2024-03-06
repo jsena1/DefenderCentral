@@ -1,0 +1,125 @@
+<!-- /templates/index.html (updated) -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Defender Central</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+
+<body>
+    <!-- Testing VirusTotalAPI and Zenrows -->
+    <!-- Tested Malicious URL: hxxps://papiculo[.]net/unmiconfig.json -->
+    <!-- Compatible URL: https://www.fortinet.com/blog/threat-research/malicious-pypi-packages-deploy-coinminer-on-linux-devices -->
+
+    <h1>Testing VirusTotal and Zenrows APIs</h1>
+    <form id="scanForm">
+        <label for="urlInput">Enter URL to scan:</label>
+        <input type="text" id="urlInput" name="url" required>
+        <button type="button" onclick="scanURL()">Scan</button>
+    </form>
+
+    <div id="resultContainer" style="display: none;">
+        <h2>Scan Results</h2>
+        <pre id="scanResults"></pre>
+        <h2>Analysis Report</h2>
+        <pre id="analysisReport"></pre>
+        <h2>Community Comments</h2>
+        <pre id="communityComments"></pre>
+        <h2>Zenrows Analysis</h2>
+        <pre id="zenrowsAnalysis"></pre>
+    </div>
+    
+    <script>
+        function scanURL() {
+            var url = $('#urlInput').val();
+
+            $.ajax({
+                type: 'POST',
+                url: '/scan_url',
+                data: { url: url },
+                success: function (data) {
+                    $('#scanResults').text(JSON.stringify(data.results, null, 2));
+                    $('#analysisReportContainer').hide();
+                    $('#communityCommentsContainer').hide();
+                    $('#zenrowsAnalysisContainer').hide();
+                    $('#resultContainer').show();
+
+                    // Fetch analysis report after scanning
+                    $.ajax({
+                        type: 'GET',
+                        url: '/get_analysis_report',
+                        success: function (analysisReport) {
+                            // Display only last_analysis_stats
+                            var lastAnalysisStats = analysisReport.data.attributes.last_analysis_stats;
+                            $('#analysisReport').text(JSON.stringify({ last_analysis_stats: lastAnalysisStats }, null, 2));
+                            $('#analysisReportContainer').show();
+                        },
+                        error: function (error) {
+                            console.error('Error fetching analysis report:', error);
+                            alert('Failed to fetch analysis report. Please try again.');
+                        }
+                    });
+
+                    // Fetch community comments after scanning
+                    $.ajax({
+                        type: 'GET',
+                        url: '/get_community_comments',
+                        success: function (communityComments) {
+                            // Extract and display only the URL from community comments
+                            var urlReference = communityComments.data[0].attributes.text.match(/Reference: (https:\/\/[^\s]+)/);
+                            if (urlReference) {
+                                var referenceURL = urlReference[1];
+                                var referenceMessage = isCompatibleWithZenrows(referenceURL) ? referenceURL : 'URL not compatible with Zenrows.';
+                                $('#communityComments').text(referenceMessage);
+                                $('#communityCommentsContainer').show();
+
+                                // Check if compatible with Zenrows and fetch Zenrows analysis
+                                if (isCompatibleWithZenrows(referenceURL)) {
+                                    fetchZenrowsAnalysis(referenceURL);
+                                }
+                            } else {
+                                $('#communityComments').text('No reference URL found.');
+                                $('#communityCommentsContainer').show();
+                            }
+                        },
+                        error: function (error) {
+                            console.error('Error fetching community comments:', error);
+                            alert('Failed to fetch community comments. Please try again.');
+                        }
+                    });
+                },
+                error: function (error) {
+                    console.error('Error scanning URL:', error);
+                    alert('Failed to scan URL. Please try again.');
+                }
+            });
+        }
+
+        function isCompatibleWithZenrows(url) {
+            // Check if the top-level domain is .gov
+            var topLevelDomain = new URL(url).hostname.split('.').pop();
+            return topLevelDomain.toLowerCase() !== 'gov';
+        }
+
+        function fetchZenrowsAnalysis(url) {
+            // Call the /get_zenrows_analysis endpoint with the reference URL as a parameter
+            $.ajax({
+                type: 'GET',
+                url: '/get_zenrows_analysis?url=' + encodeURIComponent(url),
+                success: function (zenrowsAnalysis) {
+                    $('#zenrowsAnalysis').text(JSON.stringify(zenrowsAnalysis, null, 2));
+                    $('#zenrowsAnalysisContainer').show();
+                },
+                error: function (error) {
+                    console.error('Error fetching Zenrows analysis:', error);
+                    alert('Failed to fetch Zenrows analysis. Please try again.');
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
