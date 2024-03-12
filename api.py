@@ -24,12 +24,21 @@ def scan_url():
 
 @app.route('/get_analysis_report', methods=['GET'])
 def get_analysis_report():
-    url = "https://www.virustotal.com/api/v3/urls/930e42558c8d93c48b3f04bab22f5d3ffcaef6f7d3f31044d962b5fa046a241d"
+    analysis_id = request.args.get('analysisId')
+
+    print("Analysis ID: ", analysis_id)
+
+    if not analysis_id:
+        return {"error": "Analysis ID parameter is missing."}
+
+    url = f"https://www.virustotal.com/api/v3/urls/{analysis_id}"
     headers = {
         "accept": "application/json",
         "x-apikey": VIRUSTOTAL_API_KEY,
     }
     response = requests.get(url, headers=headers)
+
+    print("URL Analyzed: ", url)
 
     if response.status_code == 200:
         analysis_report = response.json()
@@ -44,24 +53,38 @@ def scan_with_virustotal(url):
         "x-apikey": VIRUSTOTAL_API_KEY,
         "content-type": "application/x-www-form-urlencoded",
     }
+    
+    print("URL being scanned: ", url)
+
     response = requests.post(virustotal_url, data=payload, headers=headers)
 
     if response.status_code == 200:
         scan_results = response.json()
+        print("Scan Results: ", scan_results)
         return scan_results
     else:
         return {"error": f"Failed to scan URL. Status code: {response.status_code}"}
 
 @app.route('/get_community_comments', methods=['GET'])
 def get_community_comments():
-    url = "https://www.virustotal.com/api/v3/urls/930e42558c8d93c48b3f04bab22f5d3ffcaef6f7d3f31044d962b5fa046a241d/comments?limit=10"
+    analysis_id = request.args.get('analysisId')
+
+    print("Analysis ID for Community Comments: ", analysis_id)
+
+    if not analysis_id:
+        return {"error": "Analysis ID parameter is missing."}
+
+    url = f"https://www.virustotal.com/api/v3/urls/{analysis_id}/comments?limit=10"
     headers = {
         "accept": "application/json",
         "x-apikey": VIRUSTOTAL_API_KEY,
     }
     response = requests.get(url, headers=headers)
 
+    print("URL to grab comments from: ", url)
+
     if response.status_code == 200:
+        print("response.json: ", response.json())
         community_comments = response.json()
         return jsonify(community_comments)
     else:
@@ -109,7 +132,7 @@ def get_zenrows_analysis():
 
             extracted_string = "\n".join(extracted_text)
 
-            print("Parsed Extracted HTML Response:\n", extracted_string)
+            #print("Parsed Extracted HTML Response:\n", extracted_string)
 
             # Return the extracted text as JSON
             return jsonify({'extracted_text': extracted_text})

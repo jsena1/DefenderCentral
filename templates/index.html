@@ -47,10 +47,13 @@
                     $('#zenrowsAnalysisContainer').hide();
                     $('#resultContainer').show();
 
+                    var analysisId = data.results.data.id.split('-')[1];
+
                     // Fetch analysis report after scanning
                     $.ajax({
                         type: 'GET',
                         url: '/get_analysis_report',
+                        data: { analysisId: analysisId },  // Pass the analysisId as a parameter
                         success: function (analysisReport) {
                             // Display only last_analysis_stats
                             var lastAnalysisStats = analysisReport.data.attributes.last_analysis_stats;
@@ -67,22 +70,41 @@
                     $.ajax({
                         type: 'GET',
                         url: '/get_community_comments',
+                        data: { analysisId: analysisId },  // Pass the analysisId as a parameter
                         success: function (communityComments) {
-                            // Extract and display only the URL from community comments
-                            var urlReference = communityComments.data[0].attributes.text.match(/Reference: (https:\/\/[^\s]+)/);
-                            if (urlReference) {
-                                var referenceURL = urlReference[1];
-                                var referenceMessage = isCompatibleWithZenrows(referenceURL) ? referenceURL : 'URL not compatible with Zenrows.';
-                                $('#communityComments').text(referenceMessage);
-                                $('#communityCommentsContainer').show();
-
-                                // Check if compatible with Zenrows and fetch Zenrows analysis
-                                if (isCompatibleWithZenrows(referenceURL)) {
-                                    fetchZenrowsAnalysis(referenceURL);
-                                }
-                            } else {
+                            // Check if count is 0
+                            if (communityComments.meta.count === 0) {
                                 $('#communityComments').text('No reference URL found.');
                                 $('#communityCommentsContainer').show();
+                            } else {
+                                // Extract and display only the URL from community comments
+                                console.log("Comments", communityComments);
+
+                                var urlReference;
+
+                                for (var i = 0; i < communityComments.meta.count; i++) {
+                                    var commentText = communityComments.data[i].attributes.text;
+                                    var match = commentText.match(/Reference: (https:\/\/[^\s]+)/);
+
+                                    if (match) {
+                                        console.log("Matched Comment", match);
+                                        urlReference = match[1];
+                                        console.log("URL Reference", urlReference);
+                                        break;  // Stop iterating after finding the first matching comment
+                                    }
+                                }
+
+                                if (urlReference) {
+                                    var referenceURL = urlReference;
+                                    var referenceMessage = isCompatibleWithZenrows(referenceURL) ? referenceURL : 'URL not compatible with Zenrows.';
+                                    $('#communityComments').text(referenceMessage);
+                                    $('#communityCommentsContainer').show();
+
+                                    // Check if compatible with Zenrows and fetch Zenrows analysis
+                                    if (isCompatibleWithZenrows(referenceURL)) {
+                                        fetchZenrowsAnalysis(referenceURL);
+                                    }
+                                }
                             }
                         },
                         error: function (error) {
