@@ -2,8 +2,12 @@ import os
 import requests
 from flask import Flask, render_template, request, jsonify
 from bs4 import BeautifulSoup
+from openai import OpenAI
 
 app = Flask(__name__)
+
+relevant_info = []
+
 
 
 @app.route('/')
@@ -61,9 +65,14 @@ def scan_with_virustotal(url):
     if response.status_code == 200:
         scan_results = response.json()
         print("Scan Results: ", scan_results)
+        #testGPT()
+        
+
         return scan_results
     else:
         return {"error": f"Failed to scan URL. Status code: {response.status_code}"}
+
+
 
 @app.route('/get_community_comments', methods=['GET'])
 def get_community_comments():
@@ -89,6 +98,22 @@ def get_community_comments():
         return jsonify(community_comments)
     else:
         return {"error": f"Failed to fetch community comments. Status code: {response.status_code}"}
+
+@app.route('/get_gpt_analysis', methods=['GET'])
+def get_gpt_analysis():
+    messages = [
+        {"role": "system", "content": "You are a cybersecurity assistant, skilled in explaining cybersecurity advisories to non-technical users. I'll provide you with a explanation of cybersecurity threat found on the website and your task is to explain the threat to non-technical user."},
+        {"role": "user", "content": "This is torjan x64 virus found by Kaspersky antivirus."},
+    ]
+
+
+    client = OpenAI(api_key="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")
+    completion = client.chat.completions.create(
+        model = "gpt-3.5-turbo",
+        messages=messages
+    )
+    print(completion.choices[0].message.content)
+    return jsonify("Empty Info")
 
 @app.route('/get_zenrows_analysis', methods=['GET'])
 def get_zenrows_analysis():
@@ -128,18 +153,59 @@ def get_zenrows_analysis():
                     extracted_text.append(text_content)
 
             # Remove any empty strings from the list
-            extracted_text = [item for item in extracted_text if item]
+            # extracted_text = [item for item in extracted_text if item]
+            # relevant_info = extract_relevant_info(extracted_text)
 
-            extracted_string = "\n".join(extracted_text)
+            # extracted_string = "\n".join(extracted_text)
+            # messages = [
+            #     {"role": "system", "content": "You are a cybersecurity assistant, skilled in explaining cybersecurity advisories to non-technical users. I'll provide you with a explanation of cybersecurity threat found on the website and your task is to explain the threat to non-technical user."}
+            # ]
+
+            # for text in relevant_info:
+            #     messages.append({"role": "user", "content": text})    
+
+
+            # client = OpenAI(api_key="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")
+            # completion = client.chat.completions.create(
+            #     model = "gpt-3.5-turbo",
+            #     messages=messages
+            # )
+            # print(completion.choices[0].message)
 
             #print("Parsed Extracted HTML Response:\n", extracted_string)
 
             # Return the extracted text as JSON
-            return jsonify({'extracted_text': extracted_text})
+            #testGPT(relevant_info)
+            return jsonify({'relevant_info': relevant_info})
         else:
             return {"error": f"Failed to fetch Zenrows analysis. Status code: {response.status_code}"}
     except requests.exceptions.RequestException as e:
         return {"error": f"Request to Zenrows API failed: {e}"}
+
+def extract_relevant_info(extracted_text):
+    start_index = None
+    end_index = None
+
+    # Find the index where "Article Contents" starts
+    for i, text in enumerate(extracted_text):
+        if "Article Contents" in text:
+            start_index = i
+            break
+
+    # Find the index where "Conclusion" ends
+    for i, text in enumerate(extracted_text):
+        if "Conclusion" in text:
+            end_index = i
+            break
+
+    # Extract the relevant text between "Article Contents" and "Conclusion"
+    if start_index is not None and end_index is not None:
+        relevant_text = extracted_text[start_index:end_index]
+    else:
+        relevant_text = []
+
+    return relevant_text
+
 
 if __name__ == '__main__':
     app.run(debug=True)

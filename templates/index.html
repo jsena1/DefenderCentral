@@ -30,6 +30,8 @@
         <pre id="communityComments"></pre>
         <h2>Zenrows Analysis</h2>
         <pre id="zenrowsAnalysis"></pre>
+        <h2>GPT Analysis</h2>
+        <pre id="GPTAnalysis"></pre>
     </div>
     
     <script>
@@ -110,6 +112,19 @@
                         error: function (error) {
                             console.error('Error fetching community comments:', error);
                             alert('Failed to fetch community comments. Please try again.');
+                        }
+                    });
+                    $.ajax({
+                        type: 'GET',
+                        url: '/get_gpt_analysis',
+                        data: { analysisId: analysisId },  // Pass the analysisId as a parameter
+                        success: function (gptAnalysis) {
+                            $('#GPTAnalysis').text(gptAnalysis.relevant_info);
+                            $('#GPTAnalysisContainer').show(); // Show the GPT Analysis container
+                        },
+                        error: function (error) {
+                            console.error('Error fetching GPT analysis:', error);
+                            alert('Failed to fetch GPT analysis. Please try again.');
                         }
                     });
                 },
