@@ -114,21 +114,6 @@
                             alert('Failed to fetch community comments. Please try again.');
                         }
                     });
-
-                    // Get GPT Analysis
-                    $.ajax({
-                        type: 'GET',
-                        url: '/get_gpt_analysis',
-                        data: { analysisId: analysisId },  // Pass the analysisId as a parameter
-                        success: function (gptAnalysis) {
-                            $('#GPTAnalysis').text("BLA BLA BLA");
-                            $('#GPTAnalysisContainer').show(); // Show the GPT Analysis containe
-                        },
-                        error: function (error) {
-                            console.error('Error fetching GPT analysis:', error);
-                            alert('Failed to fetch GPT analysis. Please try again.');
-                        }
-                    });
                 },
                 error: function (error) {
                     console.error('Error scanning URL:', error);
@@ -151,6 +136,21 @@
                 success: function (zenrowsAnalysis) {
                     $('#zenrowsAnalysis').text(JSON.stringify(zenrowsAnalysis, null, 2));
                     $('#zenrowsAnalysisContainer').show();
+
+                    // Get GPT Analysis
+                        $.ajax({
+                            type: 'GET',
+                            url: '/get_gpt_analysis',
+                            data: { 'zenRowsText': zenrowsAnalysis['relevant_info'] },  // Pass text to gpt
+                            success: function (gptAnalysis) {
+                                $('#GPTAnalysis').text(gptAnalysis['gpt_response']);
+                                $('#GPTAnalysisContainer').show(); // Show the GPT Analysis containe
+                            },
+                            error: function (error) {
+                                console.error('Error fetching GPT analysis:', error);
+                                alert('Failed to fetch GPT analysis. Please try again.');
+                            }
+                        });
                 },
                 error: function (error) {
                     console.error('Error fetching Zenrows analysis:', error);

@@ -10,7 +10,7 @@ relevant_info = []
 
 VIRUSTOTAL_API_KEY = "3cafe6ff9ae09edcb22bd5529609efc1eca8209943277c80ab99cd70a4cf684f"  # Replace with your actual VirusTotal API key
 ZENROWS_API_KEY = "ef590a641c3eaa284b8086a70872c2d971a72154"  # Replace with your actual Zenrows API key
-
+OPENAI_API_KEY = "KEY IS MISSING "
 
 @app.route('/')
 def index():
@@ -68,6 +68,10 @@ def get_analysis_report():
 @app.route('/get_community_comments', methods=['GET'])
 def get_community_comments():
     analysis_id = request.args.get('analysisId')
+    print("######## GET COMM COMMENTS")
+    print(analysis_id)
+    print("######## GET COMM COMMENTS")
+
 
     print("Analysis ID for Community Comments: ", analysis_id)
 
@@ -96,9 +100,10 @@ def get_zenrows_analysis():
     # Get the URL parameter from the request
     url = request.args.get('url')
 
+
     # Ensure the URL parameter is present
     if not url:
-        return {"error": "URL paameter is missing."}
+        return {"error": "URL parameter is missing."}
 
     params = {
         'url': url,
@@ -132,7 +137,6 @@ def get_zenrows_analysis():
             extracted_text = [item for item in extracted_text if item]
             relevant_info = extract_relevant_info(extracted_text)
             extracted_string = "\n".join(relevant_info)
-            get_gpt_analysis(extracted_string)
 
             # Return the extracted text as JSON
             #testGPT(relevant_info)
@@ -144,18 +148,20 @@ def get_zenrows_analysis():
 
 
 @app.route('/get_gpt_analysis', methods=['GET'])
-def get_gpt_analysis(input):
+def get_gpt_analysis():
+    textToProcess = request.args.get('zenRowsText')
     messages = [
         {"role": "system", "content": "You are a cybersecurity assistant, skilled in explaining cybersecurity advisories to non-technical users. I'll provide you with a explanation of cybersecurity threat found on the website and your task is to explain the threat to non-technical user."},
-        {"role": "user", "content": input},
+        {"role": "user", "content": textToProcess},
     ]
 
-    client = OpenAI(api_key="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")
+    client = OpenAI(api_key=OPENAI_API_KEY)
     completion = client.chat.completions.create(
         model = "gpt-3.5-turbo",
         messages=messages
     )
-    return jsonify({'gpt_info': completion.choices[0].message.content})
+    print(completion.choices[0].message.content)
+    return jsonify({'gpt_response': completion.choices[0].message.content})
 
 
 def extract_relevant_info(extracted_text):
