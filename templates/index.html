@@ -114,13 +114,15 @@
                             alert('Failed to fetch community comments. Please try again.');
                         }
                     });
+
+                    // Get GPT Analysis
                     $.ajax({
                         type: 'GET',
                         url: '/get_gpt_analysis',
                         data: { analysisId: analysisId },  // Pass the analysisId as a parameter
                         success: function (gptAnalysis) {
-                            $('#GPTAnalysis').text(gptAnalysis.relevant_info);
-                            $('#GPTAnalysisContainer').show(); // Show the GPT Analysis container
+                            $('#GPTAnalysis').text("BLA BLA BLA");
+                            $('#GPTAnalysisContainer').show(); // Show the GPT Analysis containe
                         },
                         error: function (error) {
                             console.error('Error fetching GPT analysis:', error);

@@ -1,21 +1,20 @@
 import os
 import requests
+from openai import OpenAI
 from flask import Flask, render_template, request, jsonify
 from bs4 import BeautifulSoup
-from openai import OpenAI
 
 app = Flask(__name__)
 
 relevant_info = []
 
+VIRUSTOTAL_API_KEY = "3cafe6ff9ae09edcb22bd5529609efc1eca8209943277c80ab99cd70a4cf684f"  # Replace with your actual VirusTotal API key
+ZENROWS_API_KEY = "ef590a641c3eaa284b8086a70872c2d971a72154"  # Replace with your actual Zenrows API key
 
 
 @app.route('/')
 def index():
     return render_template('index.html')
-
-VIRUSTOTAL_API_KEY = "3cafe6ff9ae09edcb22bd5529609efc1eca8209943277c80ab99cd70a4cf684f"  # Replace with your actual VirusTotal API key
-ZENROWS_API_KEY = "ef590a641c3eaa284b8086a70872c2d971a72154"  # Replace with your actual Zenrows API key
 
 @app.route('/scan_url', methods=['POST'])
 def scan_url():
@@ -26,10 +25,26 @@ def scan_url():
 
     return jsonify({'results': scan_results})
 
+def scan_with_virustotal(url):
+    virustotal_url = "https://www.virustotal.com/api/v3/urls"
+    payload = {"url": url}
+    headers = {
+        "x-apikey": VIRUSTOTAL_API_KEY,
+        "content-type": "application/x-www-form-urlencoded",
+    }
+    print("URL being scanned: ", url)
+    response = requests.post(virustotal_url, data=payload, headers=headers)
+    if response.status_code == 200:
+        scan_results = response.json()
+        print("Scan Results: ", scan_results)
+        #testGPT()
+        return scan_results
+    else:
+        return {"error": f"Failed to scan URL. Status code: {response.status_code}"}
+
 @app.route('/get_analysis_report', methods=['GET'])
 def get_analysis_report():
     analysis_id = request.args.get('analysisId')
-
     print("Analysis ID: ", analysis_id)
 
     if not analysis_id:
@@ -41,7 +56,6 @@ def get_analysis_report():
         "x-apikey": VIRUSTOTAL_API_KEY,
     }
     response = requests.get(url, headers=headers)
-
     print("URL Analyzed: ", url)
 
     if response.status_code == 200:
@@ -49,29 +63,6 @@ def get_analysis_report():
         return jsonify(analysis_report)
     else:
         return {"error": f"Failed to fetch analysis report. Status code: {response.status_code}"}
-
-def scan_with_virustotal(url):
-    virustotal_url = "https://www.virustotal.com/api/v3/urls"
-    payload = {"url": url}
-    headers = {
-        "x-apikey": VIRUSTOTAL_API_KEY,
-        "content-type": "application/x-www-form-urlencoded",
-    }
-    
-    print("URL being scanned: ", url)
-
-    response = requests.post(virustotal_url, data=payload, headers=headers)
-
-    if response.status_code == 200:
-        scan_results = response.json()
-        print("Scan Results: ", scan_results)
-        #testGPT()
-        
-
-        return scan_results
-    else:
-        return {"error": f"Failed to scan URL. Status code: {response.status_code}"}
-
 
 
 @app.route('/get_community_comments', methods=['GET'])
@@ -99,21 +90,6 @@ def get_community_comments():
     else:
         return {"error": f"Failed to fetch community comments. Status code: {response.status_code}"}
 
-@app.route('/get_gpt_analysis', methods=['GET'])
-def get_gpt_analysis():
-    messages = [
-        {"role": "system", "content": "You are a cybersecurity assistant, skilled in explaining cybersecurity advisories to non-technical users. I'll provide you with a explanation of cybersecurity threat found on the website and your task is to explain the threat to non-technical user."},
-        {"role": "user", "content": "This is torjan x64 virus found by Kaspersky antivirus."},
-    ]
-
-
-    client = OpenAI(api_key="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")
-    completion = client.chat.completions.create(
-        model = "gpt-3.5-turbo",
-        messages=messages
-    )
-    print(completion.choices[0].message.content)
-    return jsonify("Empty Info")
 
 @app.route('/get_zenrows_analysis', methods=['GET'])
 def get_zenrows_analysis():
@@ -122,7 +98,7 @@ def get_zenrows_analysis():
 
     # Ensure the URL parameter is present
     if not url:
-        return {"error": "URL parameter is missing."}
+        return {"error": "URL paameter is missing."}
 
     params = {
         'url': url,
@@ -153,34 +129,34 @@ def get_zenrows_analysis():
                     extracted_text.append(text_content)
 
             # Remove any empty strings from the list
-            # extracted_text = [item for item in extracted_text if item]
-            # relevant_info = extract_relevant_info(extracted_text)
-
-            # extracted_string = "\n".join(extracted_text)
-            # messages = [
-            #     {"role": "system", "content": "You are a cybersecurity assistant, skilled in explaining cybersecurity advisories to non-technical users. I'll provide you with a explanation of cybersecurity threat found on the website and your task is to explain the threat to non-technical user."}
-            # ]
-
-            # for text in relevant_info:
-            #     messages.append({"role": "user", "content": text})    
-
-
-            # client = OpenAI(api_key="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")
-            # completion = client.chat.completions.create(
-            #     model = "gpt-3.5-turbo",
-            #     messages=messages
-            # )
-            # print(completion.choices[0].message)
-
-            #print("Parsed Extracted HTML Response:\n", extracted_string)
+            extracted_text = [item for item in extracted_text if item]
+            relevant_info = extract_relevant_info(extracted_text)
+            extracted_string = "\n".join(relevant_info)
+            get_gpt_analysis(extracted_string)
 
             # Return the extracted text as JSON
             #testGPT(relevant_info)
-            return jsonify({'relevant_info': relevant_info})
+            return jsonify({'relevant_info': extracted_string})
         else:
             return {"error": f"Failed to fetch Zenrows analysis. Status code: {response.status_code}"}
     except requests.exceptions.RequestException as e:
         return {"error": f"Request to Zenrows API failed: {e}"}
+
+
+@app.route('/get_gpt_analysis', methods=['GET'])
+def get_gpt_analysis(input):
+    messages = [
+        {"role": "system", "content": "You are a cybersecurity assistant, skilled in explaining cybersecurity advisories to non-technical users. I'll provide you with a explanation of cybersecurity threat found on the website and your task is to explain the threat to non-technical user."},
+        {"role": "user", "content": input},
+    ]
+
+    client = OpenAI(api_key="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")
+    completion = client.chat.completions.create(
+        model = "gpt-3.5-turbo",
+        messages=messages
+    )
+    return jsonify({'gpt_info': completion.choices[0].message.content})
+
 
 def extract_relevant_info(extracted_text):
     start_index = None
