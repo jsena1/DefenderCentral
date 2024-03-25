@@ -5,10 +5,9 @@ from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
-
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('main.html')
 
 VIRUSTOTAL_API_KEY = "3cafe6ff9ae09edcb22bd5529609efc1eca8209943277c80ab99cd70a4cf684f"  # Replace with your actual VirusTotal API key
 ZENROWS_API_KEY = "ef590a641c3eaa284b8086a70872c2d971a72154"  # Replace with your actual Zenrows API key

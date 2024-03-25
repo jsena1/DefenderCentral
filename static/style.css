@@ -1,0 +1,67 @@
+#navigation{
+    float:right;
+    text-align: center;
+    clear: both;
+}
+#search{
+    clear:both;
+
+}
+body {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    background-color: #3b3b3b; /* Use any shade of gray you prefer */
+}
+main{
+    flex: 1;
+    padding-bottom: 200px;
+}
+#resultContainer{
+    outline: 2px solid #000000;
+    display: inline-block; /* or inline */
+    margin: 10px;
+}
+.nextPage{
+    width: 140px; 
+    height: 40px; 
+    background-color: #212121; 
+    color: #fff; 
+    text-align: center; 
+    line-height: 40px; 
+    margin: 10px;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 10);
+}
+#references{
+    width: 140px;
+    height: 40px; /* Set the height of each rectangle */
+    background-color: #000; /* Set the background color of each rectangle (black in this case) */
+    color: #fff; /* Set the text color */
+    text-align: center; /* Center-align text */
+    line-height: 40px; /* Vertical centering of text */
+    margin: 10px;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 10);
+}
+ul{
+    list-style-position: inside;
+}
+h1{
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 10);
+    width: 400px;
+    text-align: center;
+    display: inline-block;
+    background-color: #212121;
+    color: #fff;
+}
+#loading-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    color: #333;
+    display: none; 
+  }
+  .loading-container.loading .loading-text {
+    display: block; /* Show loading text when loading */
+  }

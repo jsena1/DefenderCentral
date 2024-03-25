@@ -5,8 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Defender Central</title>
-    <link rel="stylesheet" href="style.css">
-    <script defer src="menuNav.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" >
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script defer type="text/javascript" src="static/menuNav.js"></script>
+    
+    <script defer type="text/javascript" src="static/loading.js"></script>
 </head>
 
 <body>
@@ -27,10 +32,14 @@
             <input type="text" id="urlInput" required>
             <button type="button" onclick="scanURL()">Scan</button>
         </form>
-
+        <div class="loading-container">
+            <div id="loading-text">Loading...</div>
+        </div>          
         <div id="resultContainer" style="display: none;">
             <h2>Scan Results</h2>
             <pre id="scanResults"></pre>
+            <h2>Analysis Report</h2>
+            <pre id="analysisReport"></pre>
         </div>
     </main>
     <div id="references">
@@ -38,7 +47,6 @@
     </div>
     </div>
     <!-- Reference the external JavaScript file -->
-    <script src="api.js"></script>
 </body>
 
 </html>
