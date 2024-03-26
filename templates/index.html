@@ -93,7 +93,7 @@
                                         urlReference = match[1];
                                         console.log("URL Reference", urlReference);
                                         break;  // Stop iterating after finding the first matching comment
-                                    }
+                                    }       
                                 }
 
                                 if (urlReference) {
@@ -101,7 +101,7 @@
                                     var referenceMessage = isCompatibleWithZenrows(referenceURL) ? referenceURL : 'URL not compatible with Zenrows.';
                                     $('#communityComments').text(referenceMessage);
                                     $('#communityCommentsContainer').show();
-
+                                    
                                     // Check if compatible with Zenrows and fetch Zenrows analysis
                                     if (isCompatibleWithZenrows(referenceURL)) {
                                         fetchZenrowsAnalysis(referenceURL);
