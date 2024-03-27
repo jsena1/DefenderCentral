@@ -14,7 +14,7 @@
     <!-- Tested Malicious URL: hxxps://papiculo[.]net/unmiconfig.json -->
     <!-- Compatible URL: https://www.fortinet.com/blog/threat-research/malicious-pypi-packages-deploy-coinminer-on-linux-devices -->
 
-    <h1>Testing VirusTotal and Zenrows APIs</h1>
+    <h1>Testing VirusTotal and AlienVault APIs</h1>
     <form id="scanForm">
         <label for="urlInput">Enter URL to scan:</label>
         <input type="text" id="urlInput" name="url" required>
@@ -89,33 +89,11 @@
             });
         }
 
-        function extractDomainFromURL(url) {
-            // Regular expression to match domain only at the end of the URL
-            var domainRegex = /^(https?:\/\/)?([\w\d-]+(\.[\w\d-]+)+)\/?$/;
-
-            // Regular expression to match IP address as the domain
-            var ipRegex = /^(https?:\/\/)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\/.*)?$/;
-
-            var matchDomain = url.match(domainRegex);
-            var matchIP = url.match(ipRegex);
-
-            if (matchDomain) {
-                // If there's a match for domain, return the domain portion
-                return matchDomain[2];
-            } else if (matchIP) {
-                // If there's a match for IP, return the IP address
-                return matchIP[2];
-            } else {
-                // If no match, return the URL unchanged
-                return url;
-            }
-        }
-
         function fetchCommunityComments(analysisId, url) {
             $.ajax({
                 type: 'GET',
                 url: '/get_community_comments',
-                data: { analysisId: analysisId },  // Pass the analysisId as a parameter
+                data: { analysisId: analysisId }, 
                 success: function (communityComments) {
                     // Check if count is 0
                     if (communityComments.meta.count === 0) {
@@ -133,19 +111,14 @@
                                 var virusTotalURL = match[1];
                                 foundComment = true;
                                 if (!virusTotalURL.endsWith(".txt")) {
-                                    // Proceed with further processing
+                                    $('#communityComments').text(virusTotalURL);
+                                    $('#communityCommentsContainer').show();
                                     processReference(virusTotalURL);
+                                    //processReference(virusTotalURL);
                                 } else {
                                     searchPulses(url);
                                 }
-                                /*
-                                console.log("Matched Comment", match);
-                                title = match[1];
-                                var searchLink = "https://www.google.com/search?q=" + encodeURIComponent(title);
-                                console.log("Google Search Link:", searchLink);
-                                searchReferenceViaGoogle(searchLink);
-                                */
-                                break;  // Stop iterating after finding the first matching comment
+                                break;
                             }
                         }
                         if (foundComment === false) {
@@ -161,81 +134,16 @@
             });
         }
 
-        function searchReferenceViaGoogle(url) {
-            $.ajax({
-                type: 'GET',
-                url: '/get_zenrows_google?url=' + url,
-                success: function (zenrowsAnalysis) {
-                    console.log(zenrowsAnalysis.first_link);
-                    processReference(zenrowsAnalysis.first_link)
-                },
-                error: function (error) {
-                    console.error('Error fetching Zenrows analysis:', error);
-                    alert('Failed to fetch Zenrows analysis. Please try again.');
-                }
-            });
-        }
-
         function searchPulses(url) {
-            url = extractDomainFromURL(url);
             $.ajax({
                 type: 'POST',
                 url: '/search_pulses',
                 contentType: 'application/json',
                 data: JSON.stringify({ url: url }),
                 success: function (response) {
-                    console.log(response);  // Handle the response as needed
-
-                    data = response.pulses.general.pulse_info;
-                    var urlReference = null;
-
-                    for (const pulse of data.pulses) {
-                        if (pulse.author.username === "AlienVault") {
-                            // Grab the reference URL from the pulse with "AlienVault"
-                            var username = pulse.author.username;
-                            urlReference = pulse.references[0];
-                            console.log("Username:", username);
-                            processReference(urlReference);
-                            return; // Exit function once found
-                        }
-                    }
-
-                    // If "AlienVault" username not found, check for "CyberHunter_NL"
-                    if (!urlReference) {
-                        for (const pulse of data.pulses) {
-                            if (pulse.author.username === "CyberHunter_NL") {
-                                // Grab the reference URL from the pulse with "CyberHunter_NL"
-                                var username = pulse.author.username;
-                                urlReference = pulse.references[0];
-                                console.log("Username:", username);
-                                processReference(urlReference);
-                                return; // Exit function once found
-                            }
-                        }
-                    }
-
-                    // If "CyberHunter_NL" username not found, check for "CyberHunterAutoFeed"
-                    if (!urlReference) {
-                        for (const pulse of data.pulses) {
-                            if (pulse.author.username === "CyberHunterAutoFeed") {
-                                // Grab the reference URL from the pulse with "CyberHunterAutoFeed"
-                                var username = pulse.author.username;
-                                urlReference = pulse.references[0];
-                                var urlDomain = new URL(urlReference).hostname;
-                                if (urlDomain === "community.riskiq.com") {
-                                    getReferenceURL(urlReference, function(referenceURL) {
-                                        if (referenceURL) {
-                                            console.log("Username:", username);
-                                            processReference(referenceURL)
-                                        } else {
-                                            console.log('No reference URL found.');
-                                        }
-                                    });
-                                }
-                                return; // Exit function once found
-                            }
-                        }
-                    }
+                    $('#communityComments').text(response);
+                    $('#communityCommentsContainer').show();
+                    processReference(response);
                 },
                 error: function (error) {
                     console.error('Error searching pulses:', error);
@@ -244,56 +152,14 @@
             });
         }
 
-        function getReferenceURL(url, callback) {
-            $.ajax({
-                type: 'GET',
-                url: '/get_reference_url?url=' + encodeURIComponent(url),
-                success: function(response) {
-                    if (response.reference_url) {
-                        callback(response.reference_url); // Call the callback function with the reference URL
-                    } else {
-                        console.log('Error: ', response.error);
-                        callback(null); // Call the callback function with null if there's an error
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error:', error);
-                    alert('Failed to fetch reference URL. Please try again.');
-                }
-            });
-        }
-
         function processReference(urlReference) {
             console.log("Reference URL:", urlReference);
-
-            var urlPattern = /^(ftp|http|https):\/\/[^ "]+$/;
-
-            if (urlReference && urlPattern.test(urlReference)) {
-                var referenceURL = urlReference;
-                var referenceMessage = isCompatibleWithZenrows(referenceURL) ? referenceURL : 'URL not compatible with Zenrows.';
-                $('#communityComments').text(referenceMessage);
-                $('#communityCommentsContainer').show();
-
-                // Check if compatible with Zenrows and fetch Zenrows analysis
-                if (isCompatibleWithZenrows(referenceURL)) {
-                    fetchZenrowsAnalysis(referenceURL);
-                }
-            }
-        }
-
-        function isCompatibleWithZenrows(url) {
-            // Check if the top-level domain is .gov
-            var topLevelDomain = new URL(url).hostname.split('.').pop();
-            return topLevelDomain.toLowerCase() !== 'gov';
-        }
-        
-        function fetchZenrowsAnalysis(url) {
-            // Call the /get_zenrows_analysis endpoint with the reference URL as a parameter
+            // Ramis ChatGPT & Newspaper extraction
             $.ajax({
                 type: 'GET',
-                url: '/get_zenrows_analysis?url=' + encodeURIComponent(url),
-                success: function (zenrowsAnalysis) {
-                    $('#zenrowsAnalysis').text(JSON.stringify(zenrowsAnalysis, null, 2));
+                url: '/get_reference_data?url=' + encodeURIComponent(urlReference),
+                success: function (response) {
+                    $('#zenrowsAnalysis').text(JSON.stringify(response.relevant_info, null, 2));
                     $('#zenrowsAnalysisContainer').show();
                 },
                 error: function (error) {
